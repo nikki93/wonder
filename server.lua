@@ -10,9 +10,11 @@ server.start('22122')
 local share = server.share
 local homes = server.homes
 
-local world = bump.newWorld(72)
+local world
 
 function server.load()
+    world = bump.newWorld(72)
+
     share.level = 1
 
     share.blocks = common.loadBlocks(share.level)

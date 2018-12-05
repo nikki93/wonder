@@ -30,13 +30,12 @@ end
 
 function common.loadBlocks(level)
     local blocks = {}
-    local file = io.open(common.ASSETS_DIR .. '/blocks-' .. level .. '.lua', 'r')
-    if file then
-        local ok, res = serpent.load(file:read('*all'))
+    local ok, str = pcall(network.fetch, portal.basePath .. '/assets/blocks-' .. level .. '.lua')
+    if ok then
+        local ok, res = serpent.load(str)
         if ok then
             blocks = res
         end
-        file:close()
     end
     return blocks
 end

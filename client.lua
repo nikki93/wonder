@@ -18,8 +18,14 @@ end
 
 local viewX, viewY = 0, 0
 
-local characterImg = love.graphics.newImage('assets/character-1.png')
-local characterQuad = love.graphics.newQuad(0, 0, 72, 126, characterImg:getDimensions())
+local characterImg
+local characterQuad
+local characterHorizontalFlip = 1
+
+function client.load()
+    characterImg = love.graphics.newImage('assets/character-1.png')
+    characterQuad = love.graphics.newQuad(0, 0, 72, 126, characterImg:getDimensions())
+end
 
 function client.connect()
     home.controls = { left = false, right = false, up = false, down = false }
@@ -58,10 +64,19 @@ function client.draw()
 --                end)
 --            end
 
+            if player.vx < 0 then
+                characterHorizontalFlip = -1
+            elseif player.vx > 0 then
+                characterHorizontalFlip = 1
+            end
+
             local sq = 1 - math.abs(math.sin(0.7 * love.timer.getTime()))
             sq = sq * sq
             characterQuad:setViewport(72 * (5 - math.floor(4 * sq * sq * sq * sq)), 0, 72, 126)
-            love.graphics.draw(characterImg, characterQuad, player.x - 16, player.y - 29)
+            love.graphics.draw(characterImg, characterQuad,
+                player.x - 16 + 72 * (0.5 * -characterHorizontalFlip + 0.5), player.y - 29,
+                0,
+                characterHorizontalFlip, 1)
         end)
     end
 end
