@@ -18,7 +18,7 @@ end
 
 local viewX, viewY = 0, 0
 
-local characterImg = love.graphics.newImage('./assets/character-1.png')
+local characterImg = love.graphics.newImage('assets/character-1.png')
 local characterQuad = love.graphics.newQuad(0, 0, 72, 126, characterImg:getDimensions())
 
 function client.connect()
@@ -58,8 +58,10 @@ function client.draw()
                 end)
             end
 
-            characterQuad:setViewport(72 * (math.floor(6 * love.timer.getTime()) % 1), 0, 72, 126)
-            love.graphics.draw(characterImg, characterQuad, player.x, player.y)
+            local sq = 1 - math.abs(math.sin(0.7 * love.timer.getTime()))
+            sq = sq * sq
+            characterQuad:setViewport(72 * (5 - math.floor(4 * sq * sq * sq * sq)), 0, 72, 126)
+            love.graphics.draw(characterImg, characterQuad, player.x - 16, player.y - 29)
         end)
     end
 end
@@ -67,10 +69,7 @@ end
 function love.keypressed(key)
     if client.connected then
         if key == 'up' then
-            home.controls.up = true
-        end
-        if key == 'down' then
-            home.controls.down = true
+            client.send('jump')
         end
         if key == 'left' then
             home.controls.left = true
@@ -83,12 +82,6 @@ end
 
 function love.keyreleased(key)
     if client.connected then
-        if key == 'up' then
-            home.controls.up = false
-        end
-        if key == 'down' then
-            home.controls.down = false
-        end
         if key == 'left' then
             home.controls.left = false
         end

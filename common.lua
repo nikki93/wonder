@@ -20,6 +20,8 @@ local common = {}
 
 common.NUM_LEVELS = 1
 
+common.PLAYER_W, common.PLAYER_H = 38, 90
+
 common.ASSETS_DIR = '/Users/nikki/Development/ghost/jiayan-1/assets'
 
 function common.loadBg(level)
