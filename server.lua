@@ -42,6 +42,7 @@ function server.connect(id)
             y = spawn.y,
             vx = 0,
             vy = 0,
+            flip = 1,
         }
         local player = share.players[id]
         world:add(player, player.x, player.y, common.PLAYER_W, common.PLAYER_H)
@@ -77,6 +78,12 @@ function server.update(dt)
                     player.vx = 200
                 end
             end
+        end
+
+        if player.vx > 0 then
+            player.flip = 1
+        elseif player.vx < 0 then
+            player.flip = -1
         end
 
         player.vy = math.min(player.vy + 1200 * dt, 40000)

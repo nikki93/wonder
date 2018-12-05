@@ -22,7 +22,7 @@ common.NUM_LEVELS = 1
 
 common.PLAYER_W, common.PLAYER_H = 38, 90
 
-common.ASSETS_DIR = '/Users/nikki/Development/ghost/jiayan-1/assets'
+common.ASSETS_DIR = '/Users/nikki/Development/ghost/wonder/assets'
 
 function common.loadBg(level)
     return love.graphics.newImage('assets/bg-' .. level .. '.png')

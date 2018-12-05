@@ -7,6 +7,7 @@ client.enabled = true
 --client.useCastleServer()
 --client.start('207.254.45.246:22122') -- A remote server I test on
 client.start('127.0.0.1:22122') -- Local server
+--client.start('10.0.1.36:22122') -- LAN IP
 
 local share = client.share
 local home = client.home
@@ -20,7 +21,6 @@ local viewX, viewY = 0, 0
 
 local characterImg
 local characterQuad
-local characterHorizontalFlip = 1
 
 function client.load()
     characterImg = love.graphics.newImage('assets/character-1.png')
@@ -34,22 +34,23 @@ end
 function client.draw()
     if client.connected then
         love.graphics.stacked('all', function()
-            local player = share.players[client.id]
-
-            local ww, wh = love.graphics.getDimensions()
-            if player.x - 240 < viewX then
-                viewX = player.x - 240
+            do
+                local player = share.players[client.id]
+                local ww, wh = love.graphics.getDimensions()
+                if player.x - 240 < viewX then
+                    viewX = player.x - 240
+                end
+                if player.x + 240 > viewX + ww then
+                    viewX = player.x + 240 - ww
+                end
+                if player.y - 240 < viewY then
+                    viewY = player.y - 240
+                end
+                if player.y + 240 > viewY + wh then
+                    viewY = player.y + 240 - wh
+                end
+                love.graphics.translate(-viewX, -viewY)
             end
-            if player.x + 240 > viewX + ww then
-                viewX = player.x + 240 - ww
-            end
-            if player.y - 240 < viewY then
-                viewY = player.y - 240
-            end
-            if player.y + 240 > viewY + wh then
-                viewY = player.y + 240 - wh
-            end
-            love.graphics.translate(-viewX, -viewY)
 
             love.graphics.draw(bgs[share.level])
 
@@ -64,19 +65,14 @@ function client.draw()
 --                end)
 --            end
 
-            if player.vx < 0 then
-                characterHorizontalFlip = -1
-            elseif player.vx > 0 then
-                characterHorizontalFlip = 1
+            for clientId, player in pairs(share.players) do
+                local sq = 1 - math.abs(math.sin(0.7 * love.timer.getTime() + clientId * 0.64))
+                sq = sq * sq
+                characterQuad:setViewport(72 * (5 - math.floor(4 * sq * sq * sq * sq)), 0, 72, 126)
+                love.graphics.draw(characterImg, characterQuad,
+                    player.x - 16 + 72 * (0.5 * -player.flip + 0.5), player.y - 29,
+                    0, player.flip, 1)
             end
-
-            local sq = 1 - math.abs(math.sin(0.7 * love.timer.getTime()))
-            sq = sq * sq
-            characterQuad:setViewport(72 * (5 - math.floor(4 * sq * sq * sq * sq)), 0, 72, 126)
-            love.graphics.draw(characterImg, characterQuad,
-                player.x - 16 + 72 * (0.5 * -characterHorizontalFlip + 0.5), player.y - 29,
-                0,
-                characterHorizontalFlip, 1)
         end)
     end
 end
