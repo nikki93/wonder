@@ -47,16 +47,16 @@ function client.draw()
 
             love.graphics.draw(bgs[share.level])
 
-            for _, b in ipairs(share.blocks) do
-                love.graphics.stacked('all', function()
-                    if b.type ==  'solid' then
-                        love.graphics.setColor(0, 0, 1)
-                    elseif b.type == 'spawn' then
-                        love.graphics.setColor(1, 1, 0)
-                    end
-                    love.graphics.rectangle('fill', b.x, b.y, b.w, b.h)
-                end)
-            end
+--            for _, b in ipairs(share.blocks) do
+--                love.graphics.stacked('all', function()
+--                    if b.type ==  'solid' then
+--                        love.graphics.setColor(0, 0, 1)
+--                    elseif b.type == 'spawn' then
+--                        love.graphics.setColor(1, 1, 0)
+--                    end
+--                    love.graphics.rectangle('fill', b.x, b.y, b.w, b.h)
+--                end)
+--            end
 
             local sq = 1 - math.abs(math.sin(0.7 * love.timer.getTime()))
             sq = sq * sq

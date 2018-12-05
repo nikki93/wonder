@@ -78,7 +78,13 @@ function server.update(dt)
         end
 
         player.vy = math.min(player.vy + 1200 * dt, 40000)
-        local newX, newY = world:move(player, player.x + player.vx * dt, player.y + player.vy * dt)
+        local newX, newY = world:move(player,
+            player.x + player.vx * dt, player.y + player.vy * dt, function(self, other)
+                if other.type == 'solid' then
+                    return other.y >= player.y + common.PLAYER_H and 'slide' or false
+                end
+                return false
+            end)
         player.vx, player.vy = (newX - player.x) / dt, (newY - player.y) / dt
         player.x, player.y = newX, newY
     end
