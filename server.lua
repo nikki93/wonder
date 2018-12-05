@@ -10,9 +10,19 @@ server.start('22122')
 local share = server.share
 local homes = server.homes
 
+local world = bump.newWorld(72)
+
 function server.load()
     share.level = 1
+
     share.blocks = common.loadBlocks(share.level)
+    for bid, b in pairs(share.blocks) do
+        if b.type == 'solid' then
+            b.id = bid
+            world:add(b, b.x, b.y, b.w, b.h)
+        end
+    end
+
     share.players = {}
 end
 
@@ -25,9 +35,14 @@ function server.connect(id)
     end
     if spawn then
         share.players[id] = {
+            id = id,
             x = spawn.x,
             y = spawn.y,
         }
+        local player = share.players[id]
+        world:add(player, player.x, player.y, 72, 126)
+        world:move(player, player.x, player.y + 1000)
+        player.x, player.y = world:getRect(player)
     end
 end
 

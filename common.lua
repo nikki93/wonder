@@ -1,6 +1,7 @@
 cs = require 'https://raw.githubusercontent.com/expo/share.lua/2d850666da9ac1fb32489cf1090547b8b0b9dd4c/cs.lua'
 bump = require 'https://raw.githubusercontent.com/kikito/bump.lua/ca27d8cc1a374ba6a8e3ce0c38fe1c7375cd8fa4/bump.lua'
 serpent = require 'https://raw.githubusercontent.com/pkulchenko/serpent/522a6239f25997b101c585c0daf6a15b7e37fad9/src/serpent.lua'
+moonshine = require 'https://raw.githubusercontent.com/nikki93/moonshine/9e04869e3ceaa76c42a69c52a954ea7f6af0469c/init.lua'
 
 
 -- `love.graphics.stacked([arg], func)` calls `func` between `love.graphics.push([arg])` and

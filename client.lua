@@ -19,7 +19,7 @@ end
 local viewX, viewY = 0, 0
 
 local characterImg = love.graphics.newImage('./assets/character-1.png')
-local characterQuad = love.graphics.newQuad(0, 0, 40, 70, characterImg:getDimensions())
+local characterQuad = love.graphics.newQuad(0, 0, 72, 126, characterImg:getDimensions())
 
 function client.connect()
     home.controls = { left = false, right = false, up = false, down = false }
@@ -47,19 +47,19 @@ function client.draw()
 
             love.graphics.draw(bgs[share.level])
 
---            for _, b in ipairs(share.blocks) do
---                love.graphics.stacked('all', function()
---                    if b.type ==  'solid' then
---                        love.graphics.setColor(0, 0, 1)
---                    elseif b.type == 'spawn' then
---                        love.graphics.setColor(1, 1, 0)
---                    end
---                    love.graphics.rectangle('fill', b.x, b.y, b.w, b.h)
---                end)
---            end
+            for _, b in ipairs(share.blocks) do
+                love.graphics.stacked('all', function()
+                    if b.type ==  'solid' then
+                        love.graphics.setColor(0, 0, 1)
+                    elseif b.type == 'spawn' then
+                        love.graphics.setColor(1, 1, 0)
+                    end
+                    love.graphics.rectangle('fill', b.x, b.y, b.w, b.h)
+                end)
+            end
 
-            characterQuad:setViewport(40 * (math.floor(6 * love.timer.getTime()) % 3), 0, 40, 70)
-            love.graphics.draw(characterImg, characterQuad, player.x, player.y, 0, 1.8, 1.8)
+            characterQuad:setViewport(72 * (math.floor(6 * love.timer.getTime()) % 1), 0, 72, 126)
+            love.graphics.draw(characterImg, characterQuad, player.x, player.y)
         end)
     end
 end
