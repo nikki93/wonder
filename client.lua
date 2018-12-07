@@ -66,9 +66,13 @@ function client.draw()
 --            end
 
             for clientId, player in pairs(share.players) do
-                local sq = 1 - math.abs(math.sin(0.7 * love.timer.getTime() + clientId * 0.64))
-                sq = sq * sq
-                characterQuad:setViewport(72 * (5 - math.floor(4 * sq * sq * sq * sq)), 0, 72, 126)
+                if player.vx == 0 then
+                    local sq = 1 - math.abs(math.sin(0.7 * love.timer.getTime() + clientId * 0.64))
+                    sq = sq * sq
+                    characterQuad:setViewport(72 * (5 - math.floor(4 * sq * sq * sq * sq)), 0, 72, 126)
+                else
+                    characterQuad:setViewport(72 * (math.floor(10 * love.timer.getTime()) % 6), 126, 72, 126)
+                end
                 love.graphics.draw(characterImg, characterQuad,
                     player.x - 16 + 72 * (0.5 * -player.flip + 0.5), player.y - 29,
                     0, player.flip, 1)
