@@ -2,6 +2,7 @@ local world
 
 local floors
 local player
+local ball
 
 function love.load()
     do -- Physics
@@ -21,21 +22,21 @@ function love.load()
 
         do
             floors[2] = {}
-            floors[2].body = love.physics.newBody(world, 400, 300)
+            floors[2].body = love.physics.newBody(world, 400, 300, 'kinematic')
             floors[2].shape = love.physics.newChainShape(false, 0, 200, 200, 200, 400, 120)
             floors[2].fixture = love.physics.newFixture(floors[2].body, floors[2].shape)
         end
 
         do
             floors[3] = {}
-            floors[3].body = love.physics.newBody(world, 200, 500)
+            floors[3].body = love.physics.newBody(world, 200, 500, 'kinematic')
             floors[3].shape = love.physics.newChainShape(false, 0, 200, 200, 200, 400, 180)
             floors[3].fixture = love.physics.newFixture(floors[3].body, floors[3].shape)
         end
 
         do
             floors[4] = {}
-            floors[4].body = love.physics.newBody(world, -100, 450)
+            floors[4].body = love.physics.newBody(world, -100, 450, 'kinematic')
             floors[4].shape = love.physics.newChainShape(false, 0, 200, 200, 200, 400, 180)
             floors[4].fixture = love.physics.newFixture(floors[4].body, floors[4].shape)
         end
@@ -52,6 +53,14 @@ function love.load()
         player.jumpRequestTime = nil
         player.canDoubleJump = false
     end
+
+    do -- Ball
+        ball = {}
+        ball.body = love.physics.newBody(world, 400, 0, 'dynamic')
+        ball.shape = love.physics.newCircleShape(14)
+        ball.fixture = love.physics.newFixture(ball.body, ball.shape, 0)
+        ball.fixture:setRestitution(0.3)
+    end
 end
 
 local characterImg
@@ -66,12 +75,12 @@ function love.draw()
 --            love.graphics.polygon('line', player.body:getWorldPoints(player.shape:getPoints()))
             local x, y = player.body:getPosition()
             local vx, vy = player.body:getLinearVelocity()
-            local walking = (love.keyboard.isDown('left') or love.keyboard.isDown('right')) and
-                    math.abs(vx) >= 0.01
+            local left, right = love.keyboard.isDown('left'), love.keyboard.isDown('right')
+            local walking = (left or right) and math.abs(vx) >= 0.01
             if walking then
-                if vx < -0.01 then
+                if left then
                     characterFlip = -1
-                elseif vx > 0.01 then
+                elseif right then
                     characterFlip = 1
                 end
                 characterQuad:setViewport(72 * (math.floor(10 * love.timer.getTime()) % 6), 126, 72, 126)
@@ -83,6 +92,10 @@ function love.draw()
             love.graphics.draw(characterImg, characterQuad,
                 x + 72 * (0.5 * -characterFlip + 0.5) - 36, y - 32 - 45,
                 0, characterFlip, 1)
+        end
+
+        do -- Ball
+            love.graphics.circle('fill', ball.body:getX(), ball.body:getY(), ball.shape:getRadius())
         end
 
         do -- Floors
@@ -157,6 +170,12 @@ function love.update(dt)
                 end
             end
         end
+    end
+
+    do -- Moving floors
+        floors[2].body:setLinearVelocity(40 * math.sin(love.timer.getTime()), 0)
+        floors[3].body:setLinearVelocity(0, 40 * math.sin(love.timer.getTime()))
+        floors[4].body:setLinearVelocity(40 * math.sin(love.timer.getTime()), 0)
     end
 
     do -- Physics
