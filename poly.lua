@@ -1,7 +1,7 @@
 local world
 
 local floors
-local ball
+local player
 
 function love.load()
     do -- Physics
@@ -41,23 +41,48 @@ function love.load()
         end
     end
 
-    do -- Ball
-        ball = {}
-        ball.body = love.physics.newBody(world, 80, 0, 'dynamic')
-        ball.shape = love.physics.newCircleShape(20)
-        ball.fixture = love.physics.newFixture(ball.body, ball.shape, 0)
-        ball.fixture:setFriction(0.1)
-        ball.body:setLinearDamping(2.8)
-        ball.maxVx = nil
-        ball.jumpRequestTime = nil
-        ball.canDoubleJump = false
+    do -- Player
+        player = {}
+        player.body = love.physics.newBody(world, 80, 0, 'dynamic')
+        player.shape = love.physics.newRectangleShape(32, 90)
+        player.fixture = love.physics.newFixture(player.body, player.shape, 0)
+        player.fixture:setFriction(0.4)
+        player.body:setLinearDamping(2.8)
+        player.body:setFixedRotation(true)
+        player.jumpRequestTime = nil
+        player.canDoubleJump = false
     end
 end
 
+local characterImg
+local characterQuad
+characterImg = love.graphics.newImage('assets/character-1.png')
+characterQuad = love.graphics.newQuad(0, 0, 72, 126, characterImg:getDimensions())
+local characterFlip = 1
+
 function love.draw()
     do -- World
-        do -- Ball
-            love.graphics.circle('line', ball.body:getX(), ball.body:getY(), ball.shape:getRadius())
+        do -- Player
+--            love.graphics.polygon('line', player.body:getWorldPoints(player.shape:getPoints()))
+            local x, y = player.body:getPosition()
+            local vx, vy = player.body:getLinearVelocity()
+            local walking = (love.keyboard.isDown('left') or love.keyboard.isDown('right')) and
+                    math.abs(vx) >= 0.01
+            if walking then
+                if vx < -0.01 then
+                    characterFlip = -1
+                elseif vx > 0.01 then
+                    characterFlip = 1
+                end
+                characterQuad:setViewport(72 * (math.floor(10 * love.timer.getTime()) % 6), 126, 72, 126)
+            else
+                local sq = 1 - math.abs(math.sin(0.7 * love.timer.getTime()))
+                sq = sq * sq
+                characterQuad:setViewport(72 * (5 - math.floor(4 * sq * sq * sq * sq)), 0, 72, 126)
+            end
+            love.graphics.draw(characterImg, characterQuad,
+                x + 72 * (0.5 * -characterFlip + 0.5) - 36, y - 32 - 45,
+                0, characterFlip, 1)
         end
 
         do -- Floors
@@ -69,22 +94,21 @@ function love.draw()
 
     do -- Stats
         love.graphics.print('fps: ' .. love.timer.getFPS(), 20, 20)
-        love.graphics.print('\nmax x vel: ' .. (ball.maxVx or 0), 20, 20)
 
         if love.keyboard.isDown('left') then
-            love.graphics.print('\n\n\nLEFT pressed', 20, 20)
+            love.graphics.print('\n\nLEFT pressed', 20, 20)
         end
         if love.keyboard.isDown('right') then
-            love.graphics.print('\n\n\n\nRIGHT pressed', 20, 20)
+            love.graphics.print('\n\n\nRIGHT pressed', 20, 20)
         end
     end
 end
 
 function love.update(dt)
-    do -- Ball pre-physics
+    do -- Player
         do -- Left / right
             local MAX_VEL, ACC = 280, 3200
-            local vx, vy = ball.body:getLinearVelocity()
+            local vx, vy = player.body:getLinearVelocity()
             local newVx = vx
             local left, right = love.keyboard.isDown('left'), love.keyboard.isDown('right')
             if not (right and left) then
@@ -95,14 +119,14 @@ function love.update(dt)
                     newVx = math.max(-MAX_VEL, vx - ACC * dt)
                 end
             end
-            ball.body:applyLinearImpulse(newVx - vx, 0)
+            player.body:applyLinearImpulse(newVx - vx, 0)
         end
 
         do -- Jump
-            local x, y = ball.body:getPosition()
+            local x, y = player.body:getPosition()
 
             local grounded = false
-            for _, contact in pairs(ball.body:getContactList()) do
+            for _, contact in pairs(player.body:getContactList()) do
                 local x1, y1, x2, y2 = contact:getPositions()
                 if (y1 and y1 > y) or (y2 and y2 > y) then
                     grounded = true
@@ -110,25 +134,25 @@ function love.update(dt)
                 end
             end
             if grounded then
-                ball.canDoubleJump = true
+                player.canDoubleJump = true
             end
 
             local JUMP_TIMESLOP = 0.1
-            if ball.jumpRequestTime
-                    and love.timer.getTime() - ball.jumpRequestTime < JUMP_TIMESLOP then
+            if player.jumpRequestTime
+                    and love.timer.getTime() - player.jumpRequestTime < JUMP_TIMESLOP then
                 local JUMP_VEL = 900
-                local vx, vy = ball.body:getLinearVelocity()
+                local vx, vy = player.body:getLinearVelocity()
                 if vy > -JUMP_VEL then
                     local canJump = false
                     if grounded then
                         canJump = true
-                    elseif ball.canDoubleJump then
+                    elseif player.canDoubleJump then
                         canJump = true
-                        ball.canDoubleJump = false
+                        player.canDoubleJump = false
                     end
                     if canJump then
-                        ball.body:applyLinearImpulse(0, -JUMP_VEL - vy)
-                        ball.jumpRequestTime = nil
+                        player.body:applyLinearImpulse(0, -JUMP_VEL - vy)
+                        player.jumpRequestTime = nil
                     end
                 end
             end
@@ -138,21 +162,12 @@ function love.update(dt)
     do -- Physics
         world:update(dt)
     end
-
-    do -- Ball post-physics
-        do -- Check max. X velocity
-            local vx, vy = ball.body:getLinearVelocity()
-            if not ball.maxVx or ball.maxVx < vx then
-                ball.maxVx = vx
-            end
-        end
-    end
 end
 
 function love.keypressed(key)
-    do
-        if key == 'up' then
-            ball.jumpRequestTime = love.timer.getTime()
+    do -- Player
+        if key == 'up' then -- Jump
+            player.jumpRequestTime = love.timer.getTime()
         end
     end
 end
