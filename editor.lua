@@ -9,11 +9,11 @@ local ICON_RADIUS = 14
 -- Mode
 local mode
 
--- View
-local viewX, viewY
-
 -- Level
 local level
+
+-- View
+local viewX, viewY
 
 -- Background
 local bg
@@ -30,12 +30,12 @@ function love.load()
         mode = 'solid'
     end
 
-    do -- View
-        viewX, viewY = 0, 0
-    end
-
     do -- Level
         level = 1
+    end
+
+    do -- View
+        viewX, viewY = 0, 0
     end
 
     do -- Background
@@ -44,26 +44,6 @@ function love.load()
 
     do -- Blocks
         blocks  = common.loadBlocks(level)
-    end
-end
-
-
---- UPDATE
-
-function love.update(dt)
-    do -- View pan
-        if love.keyboard.isDown('a') then
-            viewX = viewX - 400 * dt
-        end
-        if love.keyboard.isDown('d') then
-            viewX = viewX + 400 * dt
-        end
-        if love.keyboard.isDown('w') then
-            viewY = viewY - 400 * dt
-        end
-        if love.keyboard.isDown('s') then
-            viewY = viewY + 400 * dt
-        end
     end
 end
 
@@ -138,6 +118,26 @@ function love.draw()
 end
 
 
+--- UPDATE
+
+function love.update(dt)
+    do -- View pan
+        if love.keyboard.isDown('a') then
+            viewX = viewX - 400 * dt
+        end
+        if love.keyboard.isDown('d') then
+            viewX = viewX + 400 * dt
+        end
+        if love.keyboard.isDown('w') then
+            viewY = viewY - 400 * dt
+        end
+        if love.keyboard.isDown('s') then
+            viewY = viewY + 400 * dt
+        end
+    end
+end
+
+
 --- MOUSE
 
 function love.mousepressed(mx, my)
@@ -174,7 +174,7 @@ function love.mousepressed(mx, my)
                 if b.type == 'solid' then
                     for j = 1, #b.points - 1, 2 do -- Dumb check for every point for closeness
                         local dx, dy = b.x + b.points[j] - x, b.y + b.points[j + 1] - y
-                        remove = dx * dx + dy * dy < 80
+                        remove = remove or dx * dx + dy * dy < 80
                     end
                 elseif b.type == 'spawn' then
                     local dx, dy = b.x - x, b.y - y
