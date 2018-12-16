@@ -103,20 +103,11 @@ do
         do -- World
             love.graphics.stacked('all', function()
                 do -- View
+                    local VIEW_PADDING = 240
                     local x, y = player.body:getPosition()
                     local ww, wh = love.graphics.getDimensions()
-                    if x - 240 < viewX then
-                        viewX = x - 240
-                    end
-                    if x + 240 > viewX + ww then
-                        viewX = x + 240 - ww
-                    end
-                    if y - 240 < viewY then
-                        viewY = y - 240
-                    end
-                    if y + 240 > viewY + wh then
-                        viewY = y + 240 - wh
-                    end
+                    viewX = math.max(x - ww + VIEW_PADDING, math.min(viewX, x - VIEW_PADDING))
+                    viewY = math.max(y - wh + VIEW_PADDING, math.min(viewY, y - VIEW_PADDING))
                     love.graphics.translate(-viewX, -viewY)
                 end
 
