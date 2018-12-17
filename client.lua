@@ -5,11 +5,12 @@ local common = require 'common'
 
 local client = cs.client
 
-client.enabled = true
---client.useCastleServer()
---client.start('207.254.45.246:22122') -- A remote server I test on
-client.start('127.0.0.1:22122') -- Local server
---client.start('10.0.1.36:22122') -- LAN IP
+if USE_CASTLE_CONFIG then
+    client.useCastleConfig()
+else
+    client.enabled = true
+    client.start('127.0.0.1:22122')
+end
 
 local share = client.share
 local home = client.home

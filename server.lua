@@ -5,9 +5,12 @@ local common = require 'common'
 
 local server = cs.server
 
-server.enabled = true
---server.useCastleServer()
-server.start('22122')
+if USE_CASTLE_CONFIG then
+    server.useCastleConfig()
+else
+    server.enabled = true
+    server.start('22122')
+end
 
 local share = server.share
 local homes = server.homes
