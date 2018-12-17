@@ -5,6 +5,7 @@ local common = require 'common'
 
 local server = cs.server
 
+server.maxClients = 6
 if USE_CASTLE_CONFIG then
     server.useCastleConfig()
 else
