@@ -1,6 +1,8 @@
 local common = require 'common'
 
 
+--- SERVER
+
 local server = cs.server
 
 server.enabled = true
@@ -10,91 +12,188 @@ server.start('22122')
 local share = server.share
 local homes = server.homes
 
+
+--- LOCALS
+
+-- World
 local world
 
+-- Blocks
+local blocks
+
+
+--- LOAD
+
 function server.load()
-    world = bump.newWorld(72)
+    do -- Physics
+        love.physics.setMeter(64)
+        world = love.physics.newWorld(0, 32 * 64, true)
+    end
 
-    share.level = 1
+    do -- Level
+        share.level = 1
+    end
 
-    share.blocks = common.loadBlocks(share.level)
-    for bid, b in pairs(share.blocks) do
-        if b.type == 'solid' then
-            b.id = bid
-            world:add(b, b.x, b.y, b.w, b.h)
+    do -- Blocks
+        blocks = common.loadBlocks(share.level)
+    end
+
+    do -- Solids
+        share.solids = {}
+        for bid, b in pairs(blocks) do
+            if b.type == 'solid' then
+                share.solids[bid] = {}
+                local solid = share.solids[bid]
+                solid.body = love.physics.newBody(world, b.x, b.y)
+                solid.shape = love.physics.newChainShape(false, unpack(b.points))
+                solid.fixture = love.physics.newFixture(solid.body, solid.shape)
+            end
         end
     end
 
-    share.players = {}
+    do -- Players
+        share.players = {}
+    end
 end
 
-function server.connect(id)
-    local spawn
-    for _, b in pairs(share.blocks) do
-        if b.type == 'spawn' then
-            spawn = b
+
+--- CONNECT
+
+function server.connect(clientId)
+    do -- Player
+        share.players[clientId] = {}
+        local player = share.players[clientId]
+        player.x, player.y = 0, 0
+        for _, b in pairs(blocks) do
+            if b.type == 'spawn' then
+                player.x, player.y = b.x, b.y
+            end
         end
-    end
-    if spawn then
-        share.players[id] = {
-            id = id,
-            x = spawn.x,
-            y = spawn.y,
-            vx = 0,
-            vy = 0,
-            flip = 1,
-        }
-        local player = share.players[id]
-        world:add(player, player.x, player.y, common.PLAYER_W, common.PLAYER_H)
-        player.x, player.y = world:move(player, player.x, player.y + 1000)
+        player.body = love.physics.newBody(world, player.x, player.y, 'dynamic')
+        player.shape = love.physics.newRectangleShape(32, 90)
+        player.fixture = love.physics.newFixture(player.body, player.shape, 0)
+        player.fixture:setFriction(0.4)
+        player.body:setLinearDamping(2.8)
+        player.body:setFixedRotation(true)
+        player.jumpRequestTime = nil
+        player.canDoubleJump = false
+        player.flip = 1
     end
 end
 
-function server.receive(id, msg, ...)
-    if msg == 'jump' then
-        local player = share.players[id]
-        if player then
-            local _, nHits = world:queryRect(
-                player.x, player.y + common.PLAYER_H,
-                common.PLAYER_W, 1)
-            if nHits > 0 then
-                player.vy = -500
+
+--- DISCONNECT
+
+function server.disconnect(clientId)
+    do -- Player
+        share.players[clientId] = nil
+    end
+end
+
+
+--- RECEIVE
+
+function server.receive(clientId, msg)
+    do -- Player
+        local player = share.players[clientId]
+        do -- Jump
+            if msg == 'jump' then
+                player.jumpRequestTime = love.timer.getTime()
             end
         end
     end
 end
+
+
+--- UPDATE
 
 function server.update(dt)
-    for id, player in pairs(share.players) do
-        player.vx = 0
-
-        local controls = homes[id].controls
-        if controls then
-            if not (controls.left and controls.right) then
-                if controls.left then
-                    player.vx = -200
+    do -- Player -> Physics
+        for clientId, player in pairs(share.players) do
+            do -- Walk
+                local walk = homes[clientId].walk
+                if walk then
+                    local MAX_VEL, ACC = 280, 3200
+                    local vx, vy = player.body:getLinearVelocity()
+                    local newVx = vx
+                    if not (walk.right and walk.left) then
+                        if vx < MAX_VEL and walk.right then
+                            newVx = math.min(MAX_VEL, vx + ACC * dt)
+                        end
+                        if vx > -MAX_VEL and walk.left then
+                            newVx = math.max(-MAX_VEL, vx - ACC * dt)
+                        end
+                    end
+                    player.body:applyLinearImpulse(newVx - vx, 0)
                 end
-                if controls.right then
-                    player.vx = 200
+            end
+
+            do -- Jump
+                local x, y = player.body:getPosition()
+
+                local grounded = false
+                for _, contact in pairs(player.body:getContactList()) do
+                    local x1, y1, x2, y2 = contact:getPositions()
+                    if (y1 and y1 > y) or (y2 and y2 > y) then
+                        grounded = true
+                        break
+                    end
+                end
+                if grounded then
+                    player.canDoubleJump = true
+                end
+
+                local JUMP_TIMESLOP = 0.1
+                if player.jumpRequestTime
+                        and love.timer.getTime() - player.jumpRequestTime < JUMP_TIMESLOP then
+                    local JUMP_VEL = 900
+                    local vx, vy = player.body:getLinearVelocity()
+                    if vy > -JUMP_VEL then
+                        local canJump = false
+                        if grounded then
+                            canJump = true
+                        elseif player.canDoubleJump then
+                            canJump = true
+                            player.canDoubleJump = false
+                        end
+                        if canJump then
+                            player.body:applyLinearImpulse(0, -JUMP_VEL - vy)
+                            player.jumpRequestTime = nil
+                        end
+                    end
                 end
             end
         end
+    end
 
-        if player.vx > 0 then
-            player.flip = 1
-        elseif player.vx < 0 then
-            player.flip = -1
-        end
+    do -- Physics
+        world:update(dt)
+    end
 
-        player.vy = math.min(player.vy + 1200 * dt, 40000)
-        local newX, newY = world:move(player,
-            player.x + player.vx * dt, player.y + player.vy * dt, function(self, other)
-                if other.type == 'solid' then
-                    return other.y >= player.y + common.PLAYER_H and 'slide' or false
+    do -- Players <- Physics
+        for clientId, player in pairs(share.players) do
+            do -- Position
+                player.x, player.y = player.body:getPosition()
+            end
+
+            do -- Walking, flip
+                local walk = homes[clientId].walk
+                if walk then
+                    local vx, vy = player.body:getLinearVelocity()
+                    player.walking = math.abs(vx) >= 0.01 and (walk.left or walk.right)
+                            and not (walk.left and walk.right)
+                else
+                    player.walking = false
                 end
-                return false
-            end)
-        player.vx, player.vy = (newX - player.x) / dt, (newY - player.y) / dt
-        player.x, player.y = newX, newY
+                if player.walking then
+                    if walk.left then
+                        player.flip = -1
+                    end
+                    if walk.right then
+                        player.flip = 1
+                    end
+                end
+            end
+        end
     end
 end
