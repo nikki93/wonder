@@ -7,14 +7,16 @@ serpent = require 'https://raw.githubusercontent.com/pkulchenko/serpent/522a6239
 moonshine = require 'https://raw.githubusercontent.com/nikki93/moonshine/9e04869e3ceaa76c42a69c52a954ea7f6af0469c/init.lua'
 
 
--- `love.graphics.stacked([arg], func)` calls `func` between `love.graphics.push([arg])` and
--- `love.graphics.pop()` while being resilient to errors
-function love.graphics.stacked(argOrFunc, funcOrNil)
-    love.graphics.push(funcOrNil and argOrFunc)
-    local succeeded, err = pcall(funcOrNil or argOrFunc)
-    love.graphics.pop()
-    if not succeeded then
-        error(err, 0)
+if love.graphics then
+    -- `love.graphics.stacked([arg], func)` calls `func` between `love.graphics.push([arg])` and
+    -- `love.graphics.pop()` while being resilient to errors
+    function love.graphics.stacked(argOrFunc, funcOrNil)
+        love.graphics.push(funcOrNil and argOrFunc)
+        local succeeded, err = pcall(funcOrNil or argOrFunc)
+        love.graphics.pop()
+        if not succeeded then
+            error(err, 0)
+        end
     end
 end
 
