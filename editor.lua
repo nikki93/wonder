@@ -1,7 +1,7 @@
 local common = require 'common'
 
 
---- VARIABLES
+--- LOCALS
 
 -- Settings
 local ICON_RADIUS = 14
