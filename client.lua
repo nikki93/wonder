@@ -94,6 +94,24 @@ function client.draw()
                         0, player.flip, 1)
                 end
             end
+
+            do -- Balls
+                for ballId, ball in pairs(share.balls) do
+                    love.graphics.circle('fill', ball.x, ball.y, ball.radius)
+                end
+            end
+
+--            do -- Solids
+--                love.graphics.stacked('all', function()
+--                    love.graphics.setLineWidth(3)
+--                    for _, solid in pairs(share.solids) do
+--                        love.graphics.stacked(function()
+--                            love.graphics.translate(solid.x, solid.y)
+--                            love.graphics.line(solid.points)
+--                        end)
+--                    end
+--                end)
+--            end
         end)
     end
 

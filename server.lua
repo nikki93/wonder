@@ -40,12 +40,13 @@ function server.load()
 
     do -- Solids
         share.solids = {}
-        for bid, b in pairs(blocks) do
+        for blockId, b in pairs(blocks) do
             if b.type == 'solid' then
-                share.solids[bid] = {}
-                local solid = share.solids[bid]
-                solid.body = love.physics.newBody(world, b.x, b.y)
-                solid.shape = love.physics.newChainShape(false, unpack(b.points))
+                share.solids[blockId] = {}
+                local solid = share.solids[blockId]
+                solid.x, solid.y, solid.points = b.x, b.y, b.points
+                solid.body = love.physics.newBody(world, solid.x, solid.y)
+                solid.shape = love.physics.newChainShape(false, unpack(solid.points:__table()))
                 solid.fixture = love.physics.newFixture(solid.body, solid.shape)
             end
         end
@@ -53,6 +54,24 @@ function server.load()
 
     do -- Players
         share.players = {}
+    end
+
+    do -- Balls
+        share.balls = {}
+        for ballId = 1, 1 do
+            share.balls[ballId] = {}
+            local ball = share.balls[ballId]
+            ball.radius = 14
+            for _, b in pairs(blocks) do
+                if b.type == 'spawn' then
+                    ball.x, ball.y = b.x + 40, b.y + ballId * 30
+                end
+            end
+            ball.body = love.physics.newBody(world, ball.x, ball.y, 'dynamic')
+            ball.shape = love.physics.newCircleShape(ball.radius)
+            ball.fixture = love.physics.newFixture(ball.body, ball.shape, 0)
+            ball.fixture:setRestitution(0.3)
+        end
     end
 end
 
@@ -166,6 +185,12 @@ function server.update(dt)
         end
     end
 
+--     do -- Moving solids
+--         solids[2].body:setLinearVelocity(40 * math.sin(love.timer.getTime()), 0)
+--         solids[3].body:setLinearVelocity(0, 40 * math.sin(love.timer.getTime()))
+--         solids[4].body:setLinearVelocity(40 * math.sin(love.timer.getTime()), 0)
+--     end
+
     do -- Physics
         world:update(dt)
     end
@@ -193,6 +218,14 @@ function server.update(dt)
                         player.flip = 1
                     end
                 end
+            end
+        end
+    end
+
+    do -- Balls <- Physics
+        for ballId, ball in pairs(share.balls) do
+            do -- Position
+                ball.x, ball.y = ball.body:getPosition()
             end
         end
     end
