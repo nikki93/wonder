@@ -1,5 +1,7 @@
+local prequire = require -- Prevents auto-prefetch
+
 local CS_VERSION = '1e53007f1b30ca59b1e8049f6f56504583e8ed76'
-cs = require('https://raw.githubusercontent.com/expo/share.lua/' .. CS_VERSION .. '/cs.lua')
+cs = prequire('https://raw.githubusercontent.com/expo/share.lua/' .. CS_VERSION .. '/cs.lua')
 --cs = require 'http://localhost:8000/cs.lua' -- I use a local version to develop against some times
 
 bump = require 'https://raw.githubusercontent.com/kikito/bump.lua/ca27d8cc1a374ba6a8e3ce0c38fe1c7375cd8fa4/bump.lua'
