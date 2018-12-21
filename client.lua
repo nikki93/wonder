@@ -1,6 +1,9 @@
 local common = require 'common'
 
 
+local isMobile = love.system.getOS() == 'iOS' or love.system.getOS() == 'Android'
+
+
 --- CLIENT
 
 local client = cs.client
@@ -118,6 +121,39 @@ function client.draw()
 
     if not client.connected then -- Not connected
         love.graphics.print('not connected', 20, 20)
+    end
+end
+
+
+--- MOUSE / TOUCH
+
+function client.mousepressed(x, y, button)
+    do -- Player
+        if isMobile then
+            if y >= 0.5 * love.graphics.getHeight() then -- Walk
+                if x < 0.5 * love.graphics.getWidth() then
+                    home.walk.left = true
+                else
+                    home.walk.right = true
+                end
+            else -- Jump
+                client.send('jump')
+            end
+        end
+    end
+end
+
+function client.mousereleased(x, y, button)
+    do -- Player
+        if isMobile then
+            if y >= 0.5 * love.graphics.getHeight() then -- Walk
+                if x < 0.5 * love.graphics.getWidth() then
+                    home.walk.left = false
+                else
+                    home.walk.right = false
+                end
+            end
+        end
     end
 end
 
