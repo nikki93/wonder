@@ -109,6 +109,8 @@ end
 
 function server.disconnect(clientId)
     do -- Player
+        local player = share.players[clientId]
+        player.body:destroy()
         share.players[clientId] = nil
     end
 end
