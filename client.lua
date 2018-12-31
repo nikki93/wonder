@@ -117,6 +117,11 @@ function client.draw()
 --                end)
 --            end
         end)
+
+        do -- Stats
+            love.graphics.print('fps: ' .. love.timer.getFPS(), 20, 20)
+            love.graphics.print('\nping: ' .. client.getPing(), 20, 20)
+        end
     end
 
     if not client.connected then -- Not connected
